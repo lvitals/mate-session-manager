@@ -48,7 +48,20 @@
 #define GNOME_KEYRING_DAEMON "gnome-keyring-daemon"
 
 static gboolean gnome_compat_started = FALSE;
+static gboolean gnome_smproxy_started = FALSE;
 static Window gnome_smproxy_window = None;
+
+static gboolean
+msm_compat_have_x11_display (void)
+{
+  GdkDisplay *gdkdisplay;
+
+  if (g_strcmp0 (g_getenv ("XDG_SESSION_TYPE"), "wayland") == 0)
+    return FALSE;
+
+  gdkdisplay = gdk_display_get_default ();
+  return GDK_IS_X11_DISPLAY (gdkdisplay);
+}
 
 static void
 gnome_keyring_daemon_finished (GPid pid,
@@ -98,6 +111,12 @@ msm_compat_gnome_smproxy_startup (void)
   Window root;
   GdkDisplay *gdkdisplay;
 
+  if (!msm_compat_have_x11_display ())
+    {
+      g_debug ("MsmGnome: not starting smproxy without an X11 display");
+      return;
+    }
+
   gdkdisplay = gdk_display_get_default ();
   gdk_x11_display_error_trap_push (gdkdisplay);
 
@@ -124,12 +143,20 @@ msm_compat_gnome_smproxy_startup (void)
 
   XSync (dpy, False);
   gdk_x11_display_error_trap_pop_ignored (gdkdisplay);
+  gnome_smproxy_started = TRUE;
 }
 
 static void
 msm_compat_gnome_smproxy_shutdown (void)
 {
   GdkDisplay *gdkdisplay;
+
+  if (!gnome_smproxy_started || !msm_compat_have_x11_display ())
+    {
+      gnome_smproxy_started = FALSE;
+      gnome_smproxy_window = None;
+      return;
+    }
 
   gdkdisplay = gdk_display_get_default ();
   gdk_x11_display_error_trap_push (gdkdisplay);
@@ -141,6 +168,7 @@ msm_compat_gnome_smproxy_shutdown (void)
       gnome_smproxy_window = None;
     }
   gdk_x11_display_error_trap_pop_ignored (gdkdisplay);
+  gnome_smproxy_started = FALSE;
 }
 
 void
@@ -189,4 +217,3 @@ msm_gnome_stop (void)
 
   gnome_compat_started = FALSE;
 }
-

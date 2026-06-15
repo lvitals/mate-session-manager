@@ -3475,6 +3475,29 @@ logout_dialog_response (GsmLogoutDialog *logout_dialog,
 }
 
 static void
+present_logout_dialog (GtkWidget *dialog)
+{
+        GdkDisplay *display;
+        guint32 timestamp;
+
+        gtk_widget_show (dialog);
+
+        display = gtk_widget_get_display (dialog);
+        timestamp = gtk_get_current_event_time ();
+
+        if (GDK_IS_X11_DISPLAY (display)) {
+                GdkWindow *window;
+
+                window = gtk_widget_get_window (dialog);
+                if (window != NULL) {
+                        timestamp = gdk_x11_get_server_time (window);
+                }
+        }
+
+        gtk_window_present_with_time (GTK_WINDOW (dialog), timestamp);
+}
+
+static void
 show_shutdown_dialog (GsmManager *manager)
 {
         GtkWidget *dialog;
@@ -3495,9 +3518,7 @@ show_shutdown_dialog (GsmManager *manager)
                           "response",
                           G_CALLBACK (logout_dialog_response),
                           manager);
-        gtk_widget_show (dialog);
-        gtk_window_present_with_time (GTK_WINDOW (dialog),
-                                      gdk_x11_get_server_time (gtk_widget_get_window (GTK_WIDGET (dialog))));
+        present_logout_dialog (dialog);
 }
 
 static void
@@ -3521,9 +3542,7 @@ show_logout_dialog (GsmManager *manager)
                           "response",
                           G_CALLBACK (logout_dialog_response),
                           manager);
-        gtk_widget_show (dialog);
-        gtk_window_present_with_time (GTK_WINDOW (dialog),
-                                      gdk_x11_get_server_time (gtk_widget_get_window (GTK_WIDGET (dialog))));
+        present_logout_dialog (dialog);
 }
 
 static void
