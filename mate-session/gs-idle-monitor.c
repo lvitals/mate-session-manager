@@ -69,6 +69,20 @@ static guint32 watch_serial = 1;
 
 G_DEFINE_TYPE (GSIdleMonitor, gs_idle_monitor, G_TYPE_OBJECT)
 
+static gboolean
+display_is_x11 (void)
+{
+        GdkDisplay *display;
+
+        display = gdk_display_get_default ();
+        if (display == NULL) {
+                return FALSE;
+        }
+
+        return GDK_IS_X11_DISPLAY (display)
+               && GDK_DISPLAY_XDISPLAY (display) != NULL;
+}
+
 static gint64
 _xsyncvalue_to_int64 (XSyncValue value)
 {
@@ -286,6 +300,10 @@ _init_xtest (GSIdleMonitor *monitor)
 #ifdef HAVE_XTEST
         int a, b, c, d;
 
+        if (!display_is_x11 ()) {
+                return;
+        }
+
         XLockDisplay (GDK_DISPLAY_XDISPLAY(gdk_display_get_default()));
         monitor->have_xtest = (XTestQueryExtension (GDK_DISPLAY_XDISPLAY(gdk_display_get_default()), &a, &b, &c, &d) == True);
         if (monitor->have_xtest) {
@@ -412,6 +430,11 @@ GSIdleMonitor *
 gs_idle_monitor_new (void)
 {
         GObject *idle_monitor;
+
+        if (!display_is_x11 ()) {
+                g_debug ("GSIdleMonitor: X11 display not available; idle monitor disabled");
+                return NULL;
+        }
 
         idle_monitor = g_object_new (GS_TYPE_IDLE_MONITOR,
                                      NULL);

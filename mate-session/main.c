@@ -34,6 +34,8 @@
 #include <gtk/gtk.h>
 #include <gio/gio.h>
 
+#include <X11/Xlib.h>
+
 #include <dbus/dbus.h>
 #include <dbus/dbus-glib.h>
 #include <dbus/dbus-glib-bindings.h>
@@ -235,6 +237,36 @@ static void append_default_apps(GsmManager* manager, const char* default_session
 	g_strfreev (default_apps);
 }
 
+static gboolean
+component_is_skipped (const char *component)
+{
+	const char *skip_components;
+	gboolean skipped = FALSE;
+	char **items;
+	int i;
+
+	if (IS_STRING_EMPTY ((char *) component)) {
+		return FALSE;
+	}
+
+	skip_components = g_getenv ("MATE_SESSION_SKIP_COMPONENTS");
+	if (IS_STRING_EMPTY ((char *) skip_components)) {
+		return FALSE;
+	}
+
+	items = g_strsplit_set (skip_components, ":;,", -1);
+	for (i = 0; items[i] != NULL; i++) {
+		g_strstrip (items[i]);
+		if (g_strcmp0 (items[i], component) == 0) {
+			skipped = TRUE;
+			break;
+		}
+	}
+	g_strfreev (items);
+
+	return skipped;
+}
+
 static void append_required_apps(GsmManager* manager)
 {
 	gchar** required_components;
@@ -266,6 +298,11 @@ static void append_required_apps(GsmManager* manager)
 			}
 
 			component = required_components[i];
+			if (component_is_skipped (component))
+			{
+				g_debug ("main: skipping required component: '%s'", component);
+				continue;
+			}
 
 			default_provider = g_settings_get_string (settings_required_components, component);
 
@@ -634,6 +671,9 @@ int main(int argc, char** argv)
 	sigaction(SIGPIPE, &sa, 0);
 
 	error = NULL;
+	if (!XInitThreads())
+		g_warning("Unable to initialize Xlib thread support");
+
 	gtk_init_with_args(&argc, &argv, (char*) _(" - the MATE session manager"), entries, GETTEXT_PACKAGE, &error);
 
 	if (error != NULL)
@@ -794,4 +834,3 @@ int main(int argc, char** argv)
 
 	return 0;
 }
-
