@@ -32,6 +32,7 @@
 #include <glib/gi18n.h>
 #include <glib.h>
 #include <gtk/gtk.h>
+#include <gdk/gdkx.h>
 #include <gio/gio.h>
 
 #include <X11/Xlib.h>
@@ -633,6 +634,7 @@ int main(int argc, char** argv)
 {
 	struct sigaction sa;
 	GError* error;
+	GdkDisplay* display;
 	const char* display_str;
 	GsmManager* manager;
 	GsmStore* client_store;
@@ -736,11 +738,21 @@ int main(int argc, char** argv)
 	if (g_getenv ("XDG_CURRENT_DESKTOP") == NULL)
 		gsm_util_setenv ("XDG_CURRENT_DESKTOP", "MATE");
 
-	/* Set DISPLAY explicitly for all our children, in case --display
-	 * was specified on the command line.
+	/* Set DISPLAY explicitly for all our children only when GTK is using
+	 * X11. In a Wayland session, gdk_display_get_name() returns the
+	 * Wayland socket name (for example "wayland-0"), which is not a valid
+	 * X11 DISPLAY. Keep the inherited DISPLAY from the compositor instead;
+	 * when XWayland is available, it points at the XWayland display.
 	 */
-	display_str = gdk_display_get_name (gdk_display_get_default());
-	gsm_util_setenv("DISPLAY", display_str);
+	display = gdk_display_get_default ();
+	if (GDK_IS_X11_DISPLAY (display)) {
+		display_str = gdk_display_get_name (display);
+		gsm_util_setenv ("DISPLAY", display_str);
+	} else {
+		display_str = g_getenv ("DISPLAY");
+		if (display_str != NULL && display_str[0] != '\0')
+			gsm_util_setenv ("DISPLAY", display_str);
+	}
 
 	/* Some third-party programs rely on MATE_DESKTOP_SESSION_ID to
 	 * detect if MATE is running. We keep this for compatibility reasons.
