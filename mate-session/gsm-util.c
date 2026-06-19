@@ -32,6 +32,9 @@
 #include <glib/gi18n.h>
 #include <glib/gstdio.h>
 #include <gtk/gtk.h>
+#ifdef GDK_WINDOWING_WAYLAND
+#include <gdk/gdkwayland.h>
+#endif
 
 #include <dbus/dbus-glib.h>
 
@@ -50,11 +53,31 @@ static const char * const variable_blacklist[] = {
 gchar **
 gsm_get_screen_locker_command (void)
 {
-        const char *screen_locker_command[] = {
+        const char *wayland_lockers[] = {
+                "mate-screensaver-command --lock",
+                NULL
+        };
+        const char *x11_lockers[] = {
                 "mate-screensaver-command --lock",
                 "xscreensaver-command -lock",
                 NULL
         };
+        const char **screen_locker_command = NULL;
+        gboolean is_wayland = FALSE;
+
+#ifdef GDK_WINDOWING_WAYLAND
+        GdkDisplay *display = gdk_display_get_default ();
+        if (display && GDK_IS_WAYLAND_DISPLAY (display)) {
+                is_wayland = TRUE;
+        }
+#endif
+
+        if (is_wayland) {
+                screen_locker_command = wayland_lockers;
+        } else {
+                screen_locker_command = x11_lockers;
+        }
+
         gchar **screen_locker_argv = NULL;
         gsize   i;
 
