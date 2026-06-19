@@ -1817,14 +1817,48 @@ find_app_for_startup_id (GsmManager *manager,
         return found_app;
 }
 
+#define GSM_MANAGER_MAX_RESTARTS 5
+#define GSM_MANAGER_RESTART_WINDOW_SEC 5
+
+static void
+_gsm_manager_restart_app (GsmManager *manager,
+                          GsmApp     *app)
+{
+        gint64 now = g_get_monotonic_time ();
+        gpointer count_ptr = g_object_get_data (G_OBJECT (app), "gsm-restart-count");
+        gpointer time_ptr = g_object_get_data (G_OBJECT (app), "gsm-last-restart-time");
+        int count = count_ptr ? GPOINTER_TO_INT (count_ptr) : 0;
+        gint64 last_time = time_ptr ? (gint64) GPOINTER_TO_SIZE (time_ptr) : 0;
+
+        if (last_time > 0 && (now - last_time) < GSM_MANAGER_RESTART_WINDOW_SEC * G_USEC_PER_SEC) {
+                count++;
+        } else {
+                count = 1;
+        }
+
+        g_object_set_data (G_OBJECT (app), "gsm-restart-count", GINT_TO_POINTER (count));
+        g_object_set_data (G_OBJECT (app), "gsm-last-restart-time", GSIZE_TO_POINTER (now));
+
+        if (count > GSM_MANAGER_MAX_RESTARTS) {
+                g_warning ("GsmManager: application '%s' is restarting too rapidly; disabling restart",
+                           gsm_app_peek_app_id (app));
+                return;
+        }
+
+        GError *error = NULL;
+        gsm_app_restart (app, &error);
+        if (error != NULL) {
+                g_warning ("Error on restarting app: %s", error->message);
+                g_error_free (error);
+        }
+}
+
 static void
 _disconnect_client (GsmManager *manager,
                     GsmClient  *client)
 {
         gboolean              is_condition_client;
         GsmApp               *app;
-        GError               *error;
-        gboolean UNUSED_VARIABLE res;
         const char           *app_id;
         const char           *startup_id;
         gboolean              app_restart;
@@ -1917,14 +1951,7 @@ _disconnect_client (GsmManager *manager,
                 goto out;
         }
 
-        g_debug ("GsmManager: restarting app");
-
-        error = NULL;
-        res = gsm_app_restart (app, &error);
-        if (error != NULL) {
-                g_warning ("Error on restarting session managed app: %s", error->message);
-                g_error_free (error);
-        }
+        _gsm_manager_restart_app (manager, app);
 
  out:
         g_object_unref (client);
@@ -4173,8 +4200,6 @@ _app_restart (GsmManager *manager,
         GsmManagerPrivate *priv;
         GsmClient *client;
         const char *startup_id;
-        GError *error;
-        gboolean UNUSED_VARIABLE res;
 
         priv = gsm_manager_get_instance_private (manager);
 
@@ -4203,13 +4228,7 @@ _app_restart (GsmManager *manager,
         }
 
         g_debug ("GsmManager: restarting app '%s'", gsm_app_peek_app_id (app));
-
-        error = NULL;
-        res = gsm_app_restart (app, &error);
-        if (error != NULL) {
-                g_warning ("Error on restarting app: %s", error->message);
-                g_error_free (error);
-        }
+        _gsm_manager_restart_app (manager, app);
 }
 
 static void
