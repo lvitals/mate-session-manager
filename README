@@ -1,41 +1,113 @@
 [![Translation status](https://translate.fedoraproject.org/widget/mate-desktop/svg-badge.svg)](https://translate.fedoraproject.org/engage/mate-desktop/)
 
-mate-session
-=============
+# MATE Session Manager
 
-mate-session contains the MATE session manager, as well as a
-configuration program to choose applications starting on login.
+MATE Session Manager (`mate-session-manager`) is a core component of the MATE Desktop Environment. It is responsible for managing the startup, running, and shutdown of MATE desktop sessions. Additionally, it includes `mate-session-properties`, a graphical utility that allows users to configure applications to start automatically upon login.
 
-You may download updates to the package from:
+For more details on the session management specifications, refer to the [GNOME Session Management Wiki](https://wiki.gnome.org/Projects/SessionManagement/).
 
-   http://pub.mate-desktop.org/releases/
+---
 
+## Dependencies
 
-Design notes
-============
+To build MATE Session Manager from source, you will need the following tools and libraries installed on your system.
 
-See https://wiki.gnome.org/Projects/SessionManagement/
+### Build Tools & Utilities
+* C Compiler (GCC or Clang)
+* Meson Build System (version `0.50.0` or higher)
+* Ninja build backend
+* Git
+* Gettext
+* GLib development tools (providing `glib-genmarshal`, `gdbus-codegen`)
+* D-Bus GLib binding tool (`dbus-binding-tool`)
+* XMLTO & Libxslt (optional, required to build DocBook documentation)
 
+### Library Dependencies
+* **GLib / GIO** (>= 2.50.0 / >= 2.25.0)
+* **GTK+ 3** (>= 3.22.0)
+* **D-Bus GLib** (>= 0.76)
+* **X11 Libraries**: `x11`, `sm`, `ice`, `xext`, `xau`, `xcomposite`, `xtst`, `xrender`, `xtrans`
+* **OpenGL / Epoxy**: `gl`, `epoxy` (plus optional `egl` and `glesv2` support)
+* **MATE Desktop Library** (`mate-desktop`)
+* **Libcanberra-GTK3** (optional, for sound events)
+* **Systemd / Elogind** (optional, for systemd/elogind login session management)
 
-Installation
-============
+---
 
-In order to build this program from the source code you need git installed and
- a working MATE environment, with the development tools installed properly.
+## Building and Installing
 
-git submodule init
-git submodule update --remote --recursive
-./autogen.sh
+### 1. Initialize and Update Submodules
+The project relies on external submodules (such as `libegg` under `mate-submodules`) which must be initialized and updated before configuring the build:
+
+```bash
+git submodule update --init --recursive
+```
+
+### 2. Configure the Build
+Use Meson to configure the build. It is recommended to use the standard installation directories matching your system layout:
+
+```bash
+meson setup builddir \
+  --prefix=/usr \
+  --sysconfdir=/etc \
+  --localstatedir=/var \
+  --buildtype=plain
+```
+
+#### Custom Build Options
+You can toggle optional features using `-D<option>=<value>`. Available options include:
+
+| Option | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `systemd` | boolean | `true` | Enable systemd login support |
+| `elogind` | boolean | `false` | Enable elogind support instead of systemd |
+| `libcanberra` | boolean | `true` | Enable sound events using libcanberra |
+| `glesv2` | boolean | `false` | Enable GLESv2 support |
+| `xtrans` | boolean | `true` | Build with xtrans support |
+| `ipv6` | boolean | `true` | Enable IPv6 support |
+| `docbook` | boolean | `false` | Build DocBook documentation |
+| `default_wm` | string | `marco` | Specify the default window manager |
+
+*Example (disabling systemd and enabling GLESv2):*
+```bash
+meson setup builddir -Dsystemd=false -Dglesv2=true
+```
+
+### 3. Compile the Code
+Compile the project using the configured build directory:
+
+```bash
+meson compile -C builddir
+```
+
+### 4. Install the Session Manager
+Install the compiled binaries and data files to the system:
+
+```bash
+sudo meson install -C builddir
+```
+
+---
+
+## Legacy Autotools Build (Reference)
+
+For environments still relying on the legacy Autotools build system:
+
+```bash
+./autogen.sh \
+  --prefix=/usr \
+  --sysconfdir=/etc \
+  --localstatedir=/var
 make
-make install
+sudo make install
+```
 
+---
 
-How to report bugs
-==================
+## How to Report Bugs
 
-Bugs should be reported to mate-session's Github issue tracker:
+If you encounter any issues or want to request features, please report them to our GitHub issue tracker:
 
-   https://github.com/mate-desktop/mate-session-manager/issues?state=open
+[MATE Session Manager Issue Tracker](https://github.com/mate-desktop/mate-session-manager/issues)
 
-Please read the HACKING file for information on where to send changes or
-bugfixes for this package.
+For details on contributing, including how to send patches or pull requests, please read the [HACKING](file:///home/leandro/workspaces/mate-desktop/mate-session-manager/HACKING) file.
