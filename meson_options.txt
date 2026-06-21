@@ -1,0 +1,8 @@
+option('glesv2', type: 'boolean', value: false, description: 'Enable GLESv2 support')
+option('libcanberra', type: 'boolean', value: true, description: 'Enable sound events using libcanberra')
+option('default_wm', type: 'string', value: 'marco', description: 'Specify the default window manager')
+option('systemd', type: 'boolean', value: true, description: 'Add systemd support')
+option('elogind', type: 'boolean', value: false, description: 'Use libelogind instead of libsystemd-login')
+option('xtrans', type: 'boolean', value: true, description: 'Build with xtrans support')
+option('ipv6', type: 'boolean', value: true, description: 'Enable IPv6 extensions')
+option('docbook', type: 'boolean', value: false, description: 'Build documentation (requires xmlto)')
