@@ -161,7 +161,19 @@ add_project_arguments('-DHAVE_CONFIG_H', language: 'c')
 include_dirs = [include_directories('.')]
 
 # Subdirs
+config_dep = declare_dependency(include_directories: include_directories('.'))
+libegg_deps = [
+  config_dep,
+  glib_dep,
+  gtk_dep,
+  ice_dep,
+  sm_dep,
+]
 subdir('mate-submodules/libegg')
+libegg_dep = declare_dependency(
+  include_directories: include_directories('mate-submodules', 'mate-submodules/libegg'),
+  link_with: egg
+)
 subdir('mate-session')
 subdir('capplet')
 subdir('tools')
