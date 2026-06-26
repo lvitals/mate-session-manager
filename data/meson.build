@@ -41,6 +41,17 @@ if get_option('default_wm') == 'mate-wm'
   )
 endif
 
+if get_option('default_wm') == 'marco'
+  i18n.merge_file(
+    input: 'marco.desktop.in',
+    output: 'marco.desktop',
+    type: 'desktop',
+    po_dir: join_paths(meson.source_root(), 'po'),
+    install: true,
+    install_dir: join_paths(datadir, 'applications')
+  )
+endif
+
 # GSettings schemas
 i18n.merge_file(
   input: 'org.mate.session.gschema.xml.in',

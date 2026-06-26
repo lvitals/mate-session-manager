@@ -611,6 +611,16 @@ static void set_overlay_scroll (void)
 	g_object_unref (settings);
 }
 
+static void
+setenv_if_present (const char *variable)
+{
+	const char *value;
+
+	value = g_getenv (variable);
+	if (value != NULL && value[0] != '\0')
+		gsm_util_setenv (variable, value);
+}
+
 static gboolean
 check_gl (gchar **gl_renderer, GError **error)
 {
@@ -749,10 +759,10 @@ int main(int argc, char** argv)
 		display_str = gdk_display_get_name (display);
 		gsm_util_setenv ("DISPLAY", display_str);
 	} else {
-		display_str = g_getenv ("DISPLAY");
-		if (display_str != NULL && display_str[0] != '\0')
-			gsm_util_setenv ("DISPLAY", display_str);
+		setenv_if_present ("DISPLAY");
 	}
+	setenv_if_present ("WAYLAND_DISPLAY");
+	setenv_if_present ("XAUTHORITY");
 
 	/* Some third-party programs rely on MATE_DESKTOP_SESSION_ID to
 	 * detect if MATE is running. We keep this for compatibility reasons.

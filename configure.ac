@@ -114,6 +114,7 @@ AC_ARG_WITH(default-wm,
 DEFAULT_WM=$with_default_wm
 AC_SUBST(DEFAULT_WM)
 AM_CONDITIONAL(USE_MATE_WM, test x$with_default_wm = xmate-wm)
+AM_CONDITIONAL(USE_MARCO_WM, test x$with_default_wm = xmarco)
 
 dnl ====================================================================
 dnl GSettings

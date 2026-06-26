@@ -15,11 +15,15 @@ xsession_in_files = mate.desktop.in
 xsession_DATA = $(xsession_in_files:.desktop.in=.desktop)
 
 desktopdir = $(datadir)/applications
-desktop_in_files = mate-session-properties.desktop.in mate-wm.desktop.in
+desktop_in_files = mate-session-properties.desktop.in mate-wm.desktop.in marco.desktop.in
 desktop_DATA = mate-session-properties.desktop
 
 if USE_MATE_WM
 desktop_DATA += mate-wm.desktop
+endif
+
+if USE_MARCO_WM
+desktop_DATA += marco.desktop
 endif
 
 %.desktop: %.desktop.in Makefile
