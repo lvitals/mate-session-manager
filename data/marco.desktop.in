@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Marco Window Manager
+Exec=mate-wm --default-wm=marco
+# Translators: Search terms to find this application. Do NOT translate or localize the semicolons! The list MUST also end with a semicolon!
+Keywords=MATE;window;manager;launch;Marco;
+NoDisplay=true
+X-MATE-Autostart-Phase=WindowManager
+X-MATE-Provides=windowmanager
+X-MATE-Autostart-Notify=true
