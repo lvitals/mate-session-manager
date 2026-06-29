@@ -53,17 +53,35 @@ if get_option('default_wm') == 'marco'
 endif
 
 # GSettings schemas
-i18n.merge_file(
+schema_conf = configuration_data()
+schema_conf.set('DEFAULT_WM', get_option('default_wm'))
+schema_conf.set('GETTEXT_PACKAGE', meson.project_name())
+configured_schema = configure_file(
   input: 'org.mate.session.gschema.xml.in',
+  output: 'org.mate.session.gschema.xml.in',
+  configuration: schema_conf
+)
+
+merged_schema = i18n.merge_file(
+  input: configured_schema,
   output: 'org.mate.session.gschema.xml',
   po_dir: join_paths(meson.source_root(), 'po'),
   install: true,
   install_dir: join_paths(datadir, 'glib-2.0', 'schemas')
 )
 
-# Compile schemas during build
-gnome.compile_schemas(
-  depend_files: files('org.mate.session.gschema.xml.in')
+# Compile the generated schema during build
+glib_compile_schemas = find_program('glib-compile-schemas')
+custom_target(
+  'gsettings-compile-data',
+  input: merged_schema,
+  output: 'gschemas.compiled',
+  command: [
+    glib_compile_schemas,
+    '--targetdir', meson.current_build_dir(),
+    meson.current_build_dir()
+  ],
+  build_by_default: true
 )
 
 subdir('icons')
