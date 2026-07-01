@@ -14,6 +14,14 @@ xsessiondir = $(datadir)/xsessions
 xsession_in_files = mate.desktop.in
 xsession_DATA = $(xsession_in_files:.desktop.in=.desktop)
 
+waylandsessiondir = $(datadir)/wayland-sessions
+waylandsession_in_files = mate-wayland.desktop.in
+if ENABLE_WAYLAND_SESSION
+waylandsession_DATA = $(waylandsession_in_files:.desktop.in=.desktop)
+else
+waylandsession_DATA =
+endif
+
 desktopdir = $(datadir)/applications
 desktop_in_files = mate-session-properties.desktop.in mate-wm.desktop.in marco.desktop.in
 desktop_DATA = mate-session-properties.desktop
@@ -40,6 +48,7 @@ gsettings_SCHEMAS = $(gsettingsschema_in_files:.xml.in=.xml)
 EXTRA_DIST =					\
 	mate-wm				\
 	$(xsession_in_files)			\
+	$(waylandsession_in_files)		\
 	$(gsettingsschema_in_files)		\
 	$(hwcompat_DATA)			\
 	$(ui_DATA)				\
@@ -48,6 +57,7 @@ EXTRA_DIST =					\
 
 CLEANFILES =					\
 	$(xsession_DATA)			\
+	$(waylandsession_DATA)			\
 	$(desktop_DATA)				\
 	$(gsettings_SCHEMAS)
 

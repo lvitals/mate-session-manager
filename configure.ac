@@ -31,6 +31,14 @@ AC_ARG_ENABLE(deprecations,
                               [warn about deprecated usages @<:@default=no@:>@])],,
               [enable_deprecations=no])
 
+AC_ARG_ENABLE([wayland-session],
+    AS_HELP_STRING([--disable-wayland-session],
+                   [do not install the native MATE Wayland session entry]),
+    [enable_wayland_session=$enableval],
+    [enable_wayland_session=yes])
+AM_CONDITIONAL([ENABLE_WAYLAND_SESSION],
+               [test "x$enable_wayland_session" = "xyes"])
+
 if test "x$enable_deprecations" = "xyes"; then
    DISABLE_DEPRECATED_CFLAGS=$DISABLE_DEPRECATED
    AC_SUBST([DISABLE_DEPRECATED_CFLAGS])
@@ -63,7 +71,22 @@ PKG_CHECK_MODULES(SM, sm)
 PKG_CHECK_MODULES(ICE, ice)
 PKG_CHECK_MODULES(XEXT, xext xau)
 PKG_CHECK_MODULES(GTK3, gtk+-3.0 >= $GTK_REQUIRED)
-PKG_CHECK_MODULES(GL_TEST, xcomposite gl glib-2.0 epoxy)
+AC_ARG_ENABLE([x11-acceleration-check],
+    AS_HELP_STRING([--disable-x11-acceleration-check],
+                   [do not build the X11 GL acceleration check helpers]),
+    [enable_x11_acceleration_check=$enableval],
+    [enable_x11_acceleration_check=yes])
+
+AS_IF([test "x$enable_x11_acceleration_check" = "xyes"], [
+    PKG_CHECK_MODULES(GL_TEST, xcomposite gl glib-2.0 epoxy)
+    AC_DEFINE([ENABLE_X11_ACCELERATION_CHECK], [1],
+              [Build and run the X11 GL acceleration check])
+], [
+    AC_DEFINE([ENABLE_X11_ACCELERATION_CHECK], [0],
+              [Build and run the X11 GL acceleration check])
+])
+AM_CONDITIONAL([ENABLE_X11_ACCELERATION_CHECK],
+               [test "x$enable_x11_acceleration_check" = "xyes"])
 
 PKG_CHECK_MODULES(DBUS_GLIB, dbus-glib-1 >= $DBUS_GLIB_REQUIRED)
 
@@ -404,6 +427,7 @@ echo "
         XRender support:          ${have_xrender}
         XSync support:            ${have_xsync}
         XTest support:            ${have_xtest}
+        X11 acceleration check:   ${enable_x11_acceleration_check}
         Build documentation:      ${enable_docbook_docs}
         Native Language support:  ${USE_NLS}
         Libcanberra support:      ${have_libcanberra}

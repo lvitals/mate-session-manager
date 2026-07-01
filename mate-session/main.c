@@ -86,6 +86,7 @@ static gboolean failsafe = FALSE;
 static gboolean show_version = FALSE;
 static gboolean debug = FALSE;
 static gboolean disable_acceleration_check = FALSE;
+static gchar *window_manager_override = NULL;
 
 static gboolean
 initialize_gsettings (void)
@@ -305,7 +306,15 @@ static void append_required_apps(GsmManager* manager)
 				continue;
 			}
 
-			default_provider = g_settings_get_string (settings_required_components, component);
+			if (g_strcmp0 (component, "windowmanager") == 0 &&
+			    !IS_STRING_EMPTY (window_manager_override))
+			{
+				default_provider = g_strdup (window_manager_override);
+			}
+			else
+			{
+				default_provider = g_settings_get_string (settings_required_components, component);
+			}
 
 			g_debug ("main: %s looking for component: '%s'", component, default_provider);
 
@@ -624,11 +633,15 @@ setenv_if_present (const char *variable)
 static gboolean
 check_gl (gchar **gl_renderer, GError **error)
 {
+#if ENABLE_X11_ACCELERATION_CHECK
 	int status;
 	char *argv[] = { LIBEXECDIR "/mate-session-check-accelerated", NULL };
+	GdkDisplay *display;
 
-	if (getenv ("DISPLAY") == NULL) {
-		/* Not connected to X11, someone else will take care of checking GL */
+	display = gdk_display_get_default ();
+	if (!GDK_IS_X11_DISPLAY (display)) {
+		/* DISPLAY may refer to XWayland.  Do not connect to it from a
+		 * native Wayland session just to perform this legacy X11 check. */
 		return TRUE;
 	}
 
@@ -638,6 +651,9 @@ check_gl (gchar **gl_renderer, GError **error)
 	}
 
 	return g_spawn_check_exit_status (status, error);
+#else
+	return TRUE;
+#endif
 }
 
 int main(int argc, char** argv)
@@ -662,6 +678,7 @@ int main(int argc, char** argv)
 		{"failsafe", 'f', 0, G_OPTION_ARG_NONE, &failsafe, N_("Do not load user-specified applications"), NULL},
 		{"version", 0, 0, G_OPTION_ARG_NONE, &show_version, N_("Version of this application"), NULL},
 		{ "disable-acceleration-check", 0, 0, G_OPTION_ARG_NONE, &disable_acceleration_check, N_("Disable hardware acceleration check"), NULL },
+		{ "window-manager", 0, 0, G_OPTION_ARG_STRING, &window_manager_override, N_("Override the required window manager for this session"), N_("COMMAND") },
 		{NULL, 0, 0, 0, NULL, NULL, NULL }
 	};
 

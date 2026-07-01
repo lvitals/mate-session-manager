@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=MATE (Wayland)
+Comment=This session logs you into MATE using the native Wayland backend
+Exec=mate-marco-wayland-session
+TryExec=mate-marco-wayland-session
+Icon=
+Type=Application
+DesktopNames=MATE;Wayland;
+Keywords=launch;MATE;desktop;session;Wayland;

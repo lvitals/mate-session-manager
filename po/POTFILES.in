@@ -6,6 +6,7 @@ capplet/gsp-app.c
 capplet/main.c
 data/org.mate.session.gschema.xml.in
 data/mate.desktop.in
+data/mate-wayland.desktop.in
 data/mate-wm.desktop.in
 data/gsm-inhibit-dialog.ui
 data/mate-session-properties.desktop.in

@@ -21,6 +21,17 @@ i18n.merge_file(
   install_dir: join_paths(datadir, 'xsessions')
 )
 
+if get_option('wayland-session')
+  i18n.merge_file(
+    input: 'mate-wayland.desktop.in',
+    output: 'mate-wayland.desktop',
+    type: 'desktop',
+    po_dir: join_paths(meson.source_root(), 'po'),
+    install: true,
+    install_dir: join_paths(datadir, 'wayland-sessions')
+  )
+endif
+
 i18n.merge_file(
   input: 'mate-session-properties.desktop.in',
   output: 'mate-session-properties.desktop',

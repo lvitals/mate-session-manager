@@ -6,3 +6,5 @@ option('elogind', type: 'boolean', value: false, description: 'Use libelogind in
 option('xtrans', type: 'boolean', value: true, description: 'Build with xtrans support')
 option('ipv6', type: 'boolean', value: true, description: 'Enable IPv6 extensions')
 option('docbook', type: 'boolean', value: false, description: 'Build documentation (requires xmlto)')
+option('x11-acceleration-check', type: 'boolean', value: true, description: 'Build the X11 GL acceleration check helpers')
+option('wayland-session', type: 'boolean', value: true, description: 'Install a native MATE Wayland session entry')

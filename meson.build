@@ -28,9 +28,17 @@ sm_dep = dependency('sm')
 ice_dep = dependency('ice')
 xext_dep = dependency('xext')
 xau_dep = dependency('xau')
-xcomposite_dep = dependency('xcomposite')
-gl_dep = dependency('gl')
-epoxy_dep = dependency('epoxy')
+xcomposite_dep = dependency('', required: false)
+gl_dep = dependency('', required: false)
+epoxy_dep = dependency('', required: false)
+if get_option('x11-acceleration-check')
+  xcomposite_dep = dependency('xcomposite')
+  gl_dep = dependency('gl')
+  epoxy_dep = dependency('epoxy')
+  conf_x11_acceleration_check = true
+else
+  conf_x11_acceleration_check = false
+endif
 
 # Optional components
 gles_dep = dependency('', required: false)
@@ -75,6 +83,7 @@ conf.set_quoted('PACKAGE_VERSION', meson.project_version())
 conf.set_quoted('PACKAGE_BUGREPORT', 'https://mate-desktop.org/')
 conf.set_quoted('PACKAGE_STRING', '@0@ @1@'.format(meson.project_name(), meson.project_version()))
 conf.set_quoted('GETTEXT_PACKAGE', meson.project_name())
+conf.set10('ENABLE_X11_ACCELERATION_CHECK', conf_x11_acceleration_check)
 
 # Headers
 foreach h : ['syslog.h', 'tcpd.h', 'sys/param.h', 'execinfo.h']

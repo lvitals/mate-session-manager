@@ -1,7 +1,11 @@
 bin_PROGRAMS = mate-session-save mate-session-inhibit
-libexec_PROGRAMS = \
+libexec_PROGRAMS =
+
+if ENABLE_X11_ACCELERATION_CHECK
+libexec_PROGRAMS += \
 	mate-session-check-accelerated \
 	mate-session-check-accelerated-gl-helper
+endif
 
 AM_CPPFLAGS =					\
 	$(MATE_SESSION_CFLAGS)			\
@@ -30,6 +34,7 @@ mate_session_inhibit_CPPFLAGS =			\
 mate_session_inhibit_LDADD =			\
 	$(MATE_SESSION_LIBS)
 
+if ENABLE_X11_ACCELERATION_CHECK
 if HAVE_GLESV2
 libexec_PROGRAMS += mate-session-check-accelerated-gles-helper
 
@@ -48,6 +53,7 @@ mate_session_check_accelerated_gles_helper_LDADD =	\
 	$(GLES_TEST_LIBS)				\
 	$(GTK3_LIBS)					\
 	$(X11_LIBS)
+endif
 endif
 
 mate_session_check_accelerated_gl_helper_SOURCES =	\
